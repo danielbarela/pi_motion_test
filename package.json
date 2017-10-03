@@ -1,0 +1,9 @@
+{
+  "name": "pi-motion",
+  "version": "0.0.1",
+  "description": "",
+  "dependencies": {
+    "rpio": "^0.9.17",
+    "tmp": "0.0.33"
+  }
+}
