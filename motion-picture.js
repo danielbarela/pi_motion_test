@@ -31,8 +31,8 @@ function sendMAGEObservation(attachmentPath) {
     var observation = Mage.newObservation(id, 0, 0, 'Motion');
     Mage.sendObservation(observation, function(err) {
       console.log('Observation sent');
-      Mage.sendAttachment(observation.id, attachmentPath, function(err, response) {
-        console.log('Attachment sent', response);
+      Mage.sendAttachment(id, attachmentPath, function(err, response, body) {
+        console.log('Attachment sent', body.id);
       });
     });
   });

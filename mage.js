@@ -37,15 +37,15 @@ module.exports.getId = function(callback) {
 
 module.exports.sendObservation = function(observation, callback) {
   console.log('Sending observation', observation);
-  request.post({
-    url: process.env.MAGE_URL + '/api/events/' + mageEvent + '/observations',
+  request.put({
+    url: process.env.MAGE_URL + '/api/events/' + mageEvent + '/observations/id/' + observation.id,
     json: observation,
     headers: {
       Authorization: 'Bearer ' + token
     }
   }, function(err, response, body) {
     console.log('err', err);
-    console.log('sent the observation', body);
+    console.log('sent the observation', body.id);
     callback(err);
   });
 }
