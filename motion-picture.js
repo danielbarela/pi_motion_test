@@ -18,7 +18,7 @@ var motion_input_pin = 11;
 rpio.open(motion_input_pin, rpio.INPUT);
 rpio.open(led_output_pin, rpio.OUTPUT);
 
-var throttledObservation = throttle(takeAPicture, 30000);
+var throttledObservation = throttle(takeAPicture, 30000, {leading: true});
 
 loginToMage(function() {
   console.log('Logged in to Mage');
