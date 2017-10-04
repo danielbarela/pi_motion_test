@@ -24,7 +24,7 @@ loginToMage(function() {
     console.log('Raspberry IP address is: ' + ip);
     request.get({
       json: true,
-      url: 'https://freegeoip.net/?q=' ip
+      url: 'https://freegeoip.net/json/' + ip
     }, function(err, response, body) {
       console.log('ip response is', body);
       initializeMotionSensor();
