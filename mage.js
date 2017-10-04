@@ -14,6 +14,7 @@ module.exports.login = function(callback) {
     }
   }, function(err, response, body) {
     token = body.token;
+    callback(err, token);
   });
 }
 
