@@ -6,7 +6,8 @@ var rpio = require('rpio')
   , RaspiCam = require("raspicam")
   , tmp = require('tmp')
   , path = require('path')
-  , Mage = require('./mage');
+  , Mage = require('./mage')
+  , fs = require('fs');
 
 var led_output_pin = 13;
 var motion_input_pin = 11;
@@ -33,6 +34,7 @@ function sendMAGEObservation(attachmentPath) {
       console.log('Observation sent');
       Mage.sendAttachment(id, attachmentPath, function(err, response, body) {
         console.log('Attachment sent', body.id);
+        fs.unlinkSync(attachmentPath);
       });
     });
   });
@@ -63,7 +65,9 @@ function takeAPicture() {
     mode: "photo",
     output: filePath,
     rotation: 0,
-    t: 5
+    t: 5,
+    width: 3280,
+    height: 2464
   });
 
   camera.on('read', function() {
