@@ -28,7 +28,7 @@ loginToMage(function() {
     }, function(err, response, body) {
       console.log('ip response is', body);
       initializeMotionSensor();
-    }
+    });
   });
 });
 
