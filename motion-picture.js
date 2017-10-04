@@ -14,6 +14,8 @@ var rpio = require('rpio')
 
 var led_output_pin = 13;
 var motion_input_pin = 11;
+var distance_trigger_pin = 15;
+var distance_echo_pin = 16;
 
 rpio.open(motion_input_pin, rpio.INPUT);
 rpio.open(led_output_pin, rpio.OUTPUT);
