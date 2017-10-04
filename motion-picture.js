@@ -18,7 +18,7 @@ var motion_input_pin = 11;
 rpio.open(motion_input_pin, rpio.INPUT);
 rpio.open(led_output_pin, rpio.OUTPUT);
 
-var throttledMotion = throttle(motionChange, 30000);
+var throttledObservation = throttle(takeAPicture, 30000);
 
 loginToMage(function() {
   console.log('Logged in to Mage');
@@ -69,7 +69,7 @@ function initializeMotionSensor() {
     console.log('Motion complete');
   }
   console.log('Starting to poll the motion sensor');
-  rpio.poll(motion_input_pin, throttledMotion);
+  rpio.poll(motion_input_pin, motionChange);
 }
 
 function motionChange(pin) {
@@ -77,7 +77,7 @@ function motionChange(pin) {
   if (isMotion) {
     rpio.write(led_output_pin, rpio.HIGH);
     console.log('Motion!');
-    takeAPicture();
+    throttledObservation();
   } else {
     rpio.write(led_output_pin, rpio.LOW);
     console.log('Motion complete');
