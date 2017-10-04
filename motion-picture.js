@@ -15,23 +15,29 @@ rpio.open(motion_input_pin, rpio.INPUT);
 rpio.open(led_output_pin, rpio.OUTPUT);
 
 loginToMage(function() {
+  console.log('Logged in to Mage');
   initializeMotionSensor();
 });
 
 function loginToMage(callback) {
+  console.log('Logging in to Mage');
   Mage.login(callback);
 }
 
 function sendMAGEObservation() {
+  console.log('Sending new observation');
   Mage.getId(function(err, id) {
+    console.log('Observation has id ' + id);
     var observation = Mage.newObservation(id, 0, 0, 'Motion');
     Mage.sendObservation(observation, function(err) {
+      console.log('Observation sent');
     });
   });
 
 }
 
 function initializeMotionSensor() {
+  console.log('Initializing motion sensor');
   rpio.poll(motion_input_pin, motionChange);
 }
 
