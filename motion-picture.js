@@ -116,7 +116,7 @@ function getDistance() {
   console.log('Waiting for sensor to settle');
   rpio.sleep(2);
   rpio.write(distance_trigger_pin, rpio.HIGH);
-  rpio.msleep(1);
+  rpio.sleep(.0001);
   rpio.write(distance_trigger_pin, rpio.LOW);
   var pulse_start;
   var pulse_end;
