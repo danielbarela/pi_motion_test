@@ -6,8 +6,7 @@ var token;
 module.exports.login = function(callback) {
   request.post({
     url: process.env.MAGE_URL + '/api/login',
-    json: true,
-    form: {
+    json: {
       username: process.env.MAGE_USER,
       uid: process.env.MAGE_UID,
       password: process.env.MAGE_PASSWORD
@@ -48,6 +47,19 @@ module.exports.sendObservation = function(observation, callback) {
     console.log('sent the observation', body);
     callback(err);
   });
+}
+
+module.exports.sendAttachment = function(observationId, filePath, callback) {
+  //POST /api/events/{eventId}/observations/{observationId}/attachments
+  request.post({
+    url: process.env.MAGE_URL + '/api/events/' + mageEvent + '/observations/' + observationId + '/attachments',
+    headers: {
+      Authorization: 'Bearer ' + token
+    },
+    formData: {
+      attachment: fs.createReadStream(filePath),
+    }
+  }, callback);
 }
 
 module.exports.newObservation = function(id, lat, lng, sensorType) {

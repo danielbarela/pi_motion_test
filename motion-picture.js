@@ -24,13 +24,16 @@ function loginToMage(callback) {
   Mage.login(callback);
 }
 
-function sendMAGEObservation() {
+function sendMAGEObservation(attachmentPath) {
   console.log('Sending new observation');
   Mage.getId(function(err, id) {
     console.log('Observation has id ' + id);
     var observation = Mage.newObservation(id, 0, 0, 'Motion');
     Mage.sendObservation(observation, function(err) {
       console.log('Observation sent');
+      Mage.sendAttachment(observation.id, attachmentPath, function(err, response) {
+        console.log('Attachment sent', response);
+      });
     });
   });
 
@@ -66,7 +69,7 @@ function takeAPicture() {
   camera.on('read', function() {
     camera.stop();
     console.log('Picture written to %s', filePath);
-    sendMAGEObservation();
+    sendMAGEObservation(filePath);
     // schedule the motion sensor polling to begin again in 30 seconds
     setTimeout(initializeMotionSensor, 30000);
   });
