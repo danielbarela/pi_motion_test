@@ -17,6 +17,9 @@ var motion_input_pin = 11;
 rpio.open(motion_input_pin, rpio.INPUT);
 rpio.open(led_output_pin, rpio.OUTPUT);
 
+var latitude = 0;
+var longitude = 0;
+
 loginToMage(function() {
   console.log('Logged in to Mage');
   publicIp.v4().then(ip => {
@@ -27,6 +30,8 @@ loginToMage(function() {
       url: 'https://freegeoip.net/json/' + ip
     }, function(err, response, body) {
       console.log('ip response is', body);
+      latitude = body.latitude;
+      longitude = body.longitude;
       initializeMotionSensor();
     });
   });
@@ -41,7 +46,7 @@ function sendMAGEObservation(attachmentPath) {
   console.log('Sending new observation');
   Mage.getId(function(err, id) {
     console.log('Observation has id ' + id);
-    var observation = Mage.newObservation(id, 0, 0, 'Motion');
+    var observation = Mage.newObservation(id, latitude, longitude, 'Motion');
     Mage.sendObservation(observation, function(err) {
       console.log('Observation sent');
       Mage.sendAttachment(id, attachmentPath, function(err, response, body) {
