@@ -38,7 +38,7 @@ module.exports.getId = function(callback) {
 
 module.exports.sendObservation = function(observation, callback) {
   request.post({
-    url: process.env.MAGE_URL + '/api/events/' + mageEvent + '/observations/id/' + observation.id,
+    url: process.env.MAGE_URL + '/api/events/' + mageEvent + '/observations/' + observation.id,
     json: true,
     form: observation,
     headers: {
