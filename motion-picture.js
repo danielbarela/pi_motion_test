@@ -19,13 +19,17 @@ var distance_echo_pin = 16;
 
 rpio.open(motion_input_pin, rpio.INPUT);
 rpio.open(led_output_pin, rpio.OUTPUT);
+rpio.open(distance_trigger_pin, rpio.OUTPUT);
+rpio.open(distance_echo_pin, rpio.INPUT);
 
 var throttledObservation = throttle(takeAPicture, 30000, {leading: true});
 
-loginToMage(function() {
-  console.log('Logged in to Mage');
-  initializeMotionSensor();
-});
+getDistance();
+
+// loginToMage(function() {
+//   console.log('Logged in to Mage');
+//   initializeMotionSensor();
+// });
 
 function getLocation(callback) {
   publicIp.v4().then(ip => {
@@ -104,4 +108,27 @@ function takeAPicture() {
   });
 
   camera.start();
+}
+
+function getDistance() {
+  console.log('Measuring distance');
+  rpio.write(distance_trigger_pin, rpio.LOW);
+  console.log('Waiting for sensor to settle');
+  rpio.sleep(2);
+  rpio.write(distance_trigger_pin, rpio.HIGH);
+  rpio.msleep(1);
+  rpio.write(distance_trigger_pin, rpio.LOW);
+  var pulse_start;
+  var pulse_end;
+  while(rpio.read(distance_echo_pin) == rpio.LOW) {
+    pulse_start = new Date().getTime();
+  }
+  while(rpio.read(distance_echo_pin) == rpio.HIGH) {
+    pulse_end = new Date().getTime();
+  }
+
+  var pulse_duration = pulse_end - pulse_start;
+  var distance = pulse_duration * 1750;
+
+  console.log('Distance: ' + distance + ' cm');
 }
