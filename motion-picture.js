@@ -8,6 +8,7 @@ var rpio = require('rpio')
   , path = require('path')
   , Mage = require('./mage')
   , fs = require('fs')
+  , throttle = require('lodash.throttle')
   , request = require('request')
   , publicIp = require('public-ip');
 
@@ -16,6 +17,8 @@ var motion_input_pin = 11;
 
 rpio.open(motion_input_pin, rpio.INPUT);
 rpio.open(led_output_pin, rpio.OUTPUT);
+
+var throttledMotion = throttle.throttle(motionChange, 30000);
 
 loginToMage(function() {
   console.log('Logged in to Mage');
@@ -53,7 +56,6 @@ function sendMAGEObservation(attachmentPath) {
       });
     });
   });
-
 }
 
 function initializeMotionSensor() {
@@ -67,20 +69,16 @@ function initializeMotionSensor() {
     console.log('Motion complete');
   }
   console.log('Starting to poll the motion sensor');
-  rpio.poll(motion_input_pin, motionChange);
+  rpio.poll(motion_input_pin, throttledMotion);
 }
 
 function motionChange(pin) {
-  console.log('Stop the polling');
-  rpio.poll(motion_input_pin, null);
   var isMotion = rpio.read(motion_input_pin);
   if (isMotion) {
     rpio.write(led_output_pin, rpio.HIGH);
     console.log('Motion!');
     takeAPicture();
   } else {
-    console.log('Start polling the motion sensor again');
-    rpio.poll(motion_input_pin, motionChange);
     rpio.write(led_output_pin, rpio.LOW);
     console.log('Motion complete');
   }
@@ -101,8 +99,6 @@ function takeAPicture() {
     camera.stop();
     console.log('Picture written to %s', filePath);
     sendMAGEObservation(filePath);
-    // schedule the motion sensor polling to begin again in 30 seconds
-    setTimeout(initializeMotionSensor, 30000);
   });
 
   camera.start();
