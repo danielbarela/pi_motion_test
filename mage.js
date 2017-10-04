@@ -1,4 +1,5 @@
-var request = require('request');
+var request = require('request')
+  , fs = require('fs');
 
 var mageEvent = 1;
 var token;
