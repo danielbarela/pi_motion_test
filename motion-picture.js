@@ -14,8 +14,13 @@ var motion_input_pin = 11;
 rpio.open(motion_input_pin, rpio.INPUT);
 rpio.open(led_output_pin, rpio.OUTPUT);
 
-initializeMotionSensor();
+loginToMage(function() {
+  initializeMotionSensor();
+});
 
+function loginToMage(callback) {
+  Mage.login(callback);
+}
 
 function sendMAGEObservation() {
   var form = Mage.newObservation();
