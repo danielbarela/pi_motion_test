@@ -6,20 +6,21 @@ var token;
 module.exports.login = function(callback) {
   request.post({
     url: process.env.MAGE_URL + '/api/login',
+    json: true,
     form: {
       username: process.env.MAGE_USER,
       uid: process.env.MAGE_UID,
       password: process.env.MAGE_PASSWORD
     }
   }, function(err, response, body) {
-    console.log('got a token', response);
-    token = response.token;
+    token = body.token;
   });
 }
 
 module.exports.getId = function(callback) {
   request.post({
     url: process.env.MAGE_URL + '/api/events/' + mageEvent + '/observations/id',
+    json: true,
     form: {
       eventId: mageEvent
     },
@@ -28,7 +29,7 @@ module.exports.getId = function(callback) {
     },
   }, function(err, response, body) {
       if (err) callback(err);
-      var id = response.id;
+      var id = body.id;
       callback(err, id);
     }
   );
@@ -37,12 +38,14 @@ module.exports.getId = function(callback) {
 module.exports.sendObservation = function(observation, callback) {
   request.post({
     url: process.env.MAGE_URL + '/api/events/' + mageEvent + '/observations/id/' + observation.id,
+    json: true,
     form: observation,
     headers: {
       Authorization: 'Bearer ' + token
     }
   }, function(err, response, body) {
-    console.log('sent the observation', response);
+    console.log('sent the observation', body);
+    callback(err);
   });
 }
 

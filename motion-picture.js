@@ -23,7 +23,12 @@ function loginToMage(callback) {
 }
 
 function sendMAGEObservation() {
-  var form = Mage.newObservation();
+  Mage.getId(function(err, id) {
+    var observation = Mage.newObservation(id, 0, 0, 'Motion');
+    Mage.sendObservation(observation, function(err) {
+    });
+  });
+
 }
 
 function initializeMotionSensor() {
@@ -55,6 +60,7 @@ function takeAPicture() {
   camera.on('read', function() {
     camera.stop();
     console.log('Picture written to %s', filePath);
+    sendMAGEObservation();
     // schedule the motion sensor polling to begin again in 30 seconds
     setTimeout(initializeMotionSensor, 30000);
   });
