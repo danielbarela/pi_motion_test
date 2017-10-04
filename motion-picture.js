@@ -17,25 +17,21 @@ var motion_input_pin = 11;
 rpio.open(motion_input_pin, rpio.INPUT);
 rpio.open(led_output_pin, rpio.OUTPUT);
 
-var latitude = 0;
-var longitude = 0;
-
 loginToMage(function() {
   console.log('Logged in to Mage');
+  initializeMotionSensor();
+});
+
+function getLocation(callback) {
   publicIp.v4().then(ip => {
-  	console.log(ip);
-    console.log('Raspberry IP address is: ' + ip);
     request.get({
       json: true,
       url: 'https://freegeoip.net/json/' + ip
     }, function(err, response, body) {
-      console.log('ip response is', body);
-      latitude = body.latitude;
-      longitude = body.longitude;
-      initializeMotionSensor();
+      callback(err, body.latitude, body.longitude);
     });
   });
-});
+}
 
 function loginToMage(callback) {
   console.log('Logging in to Mage');
@@ -46,12 +42,14 @@ function sendMAGEObservation(attachmentPath) {
   console.log('Sending new observation');
   Mage.getId(function(err, id) {
     console.log('Observation has id ' + id);
-    var observation = Mage.newObservation(id, latitude, longitude, 'Motion');
-    Mage.sendObservation(observation, function(err) {
-      console.log('Observation sent');
-      Mage.sendAttachment(id, attachmentPath, function(err, response, body) {
-        console.log('Attachment sent', body.id);
-        fs.unlinkSync(attachmentPath);
+    getLocation(function(err, lat, lng) {
+      var observation = Mage.newObservation(id, lat, lng, 'Motion');
+      Mage.sendObservation(observation, function(err) {
+        console.log('Observation sent');
+        Mage.sendAttachment(id, attachmentPath, function(err, response, body) {
+          console.log('Attachment sent', body.id);
+          fs.unlinkSync(attachmentPath);
+        });
       });
     });
   });
