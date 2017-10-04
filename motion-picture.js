@@ -58,6 +58,15 @@ function sendMAGEObservation(attachmentPath) {
 
 function initializeMotionSensor() {
   console.log('Initializing motion sensor');
+  var isMotion = rpio.read(motion_input_pin);
+  if (isMotion) {
+    rpio.write(led_output_pin, rpio.HIGH);
+    console.log('Motion!');
+  } else {
+    rpio.write(led_output_pin, rpio.LOW);
+    console.log('Motion complete');
+  }
+
   rpio.poll(motion_input_pin, motionChange);
 }
 
