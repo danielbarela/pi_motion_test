@@ -21,8 +21,7 @@ module.exports.login = function(callback) {
 module.exports.getId = function(callback) {
   request.post({
     url: process.env.MAGE_URL + '/api/events/' + mageEvent + '/observations/id',
-    json: true,
-    form: {
+    json: {
       eventId: mageEvent
     },
     headers: {
@@ -40,8 +39,7 @@ module.exports.sendObservation = function(observation, callback) {
   console.log('Sending observation', observation);
   request.post({
     url: process.env.MAGE_URL + '/api/events/' + mageEvent + '/observations',
-    json: true,
-    form: observation,
+    json: observation,
     headers: {
       Authorization: 'Bearer ' + token
     }
