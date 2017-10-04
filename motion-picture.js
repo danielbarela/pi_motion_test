@@ -7,7 +7,9 @@ var rpio = require('rpio')
   , tmp = require('tmp')
   , path = require('path')
   , Mage = require('./mage')
-  , fs = require('fs');
+  , fs = require('fs')
+  , request = require('request')
+  , publicIp = require('public-ip');
 
 var led_output_pin = 13;
 var motion_input_pin = 11;
@@ -17,7 +19,17 @@ rpio.open(led_output_pin, rpio.OUTPUT);
 
 loginToMage(function() {
   console.log('Logged in to Mage');
-  initializeMotionSensor();
+  publicIp.v4().then(ip => {
+  	console.log(ip);
+    console.log('Raspberry IP address is: ' + ip);
+    request.get({
+      json: true,
+      url: 'https://freegeoip.net/?q=' ip
+    }, function(err, response, body) {
+      console.log('ip response is', body);
+      initializeMotionSensor();
+    }
+  });
 });
 
 function loginToMage(callback) {
@@ -66,8 +78,8 @@ function takeAPicture() {
     output: filePath,
     rotation: 0,
     t: 5,
-    width: 3280,
-    height: 2464
+    width: 1640,
+    height: 1232
   });
 
   camera.on('read', function() {
