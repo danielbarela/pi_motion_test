@@ -71,13 +71,14 @@ function initializeMotionSensor() {
 }
 
 function motionChange(pin) {
+  rpio.poll(motion_input_pin, null);
   var isMotion = rpio.read(motion_input_pin);
   if (isMotion) {
-    rpio.poll(motion_input_pin, null);
     rpio.write(led_output_pin, rpio.HIGH);
     console.log('Motion!');
     takeAPicture();
   } else {
+    rpio.poll(motion_input_pin, motionChange);
     rpio.write(led_output_pin, rpio.LOW);
     console.log('Motion complete');
   }
