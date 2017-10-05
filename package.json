@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "description": "",
   "dependencies": {
+    "async": "^2.5.0",
     "lodash.throttle": "^4.1.1",
+    "noble": "^1.8.1",
     "public-ip": "^2.3.5",
     "request": "^2.83.0",
     "rpio": "^0.9.17",
