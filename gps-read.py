@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import gps
  
 # Listen on port 2947 (gpsd) of localhost
@@ -13,6 +15,10 @@ while True:
         if report['class'] == 'TPV':
             if hasattr(report, 'time'):
                 print report.time
+            if hasattr(report, 'lat'):
+		print report.lat
+            if hasattr(report, 'lon'):
+		print report.lon
     except KeyError:
 		pass
     except KeyboardInterrupt:
