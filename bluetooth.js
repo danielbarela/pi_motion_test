@@ -1,100 +1,69 @@
 var noble = require('noble')
   , async = require('async');
 
-async.whilst(function() {
-  return true;
-}, function(callback) {
-  console.log('Scanning...');
-  setTimeout(callback, 30000);
-});
+var scan = true;
 
-noble.on('stateChange', function(state){
-  console.log('state is', state);
-  if (state === 'poweredOn') {
-    noble.startScanning();
+module.exports.stopScan = function() {
+  scan = false;
+}
+
+function peripheralDetected(peripheral, deviceDetectedCallback) {
+  // console.log('peripheral with ID ' + peripheral.id + ' found');
+  var advertisement = peripheral.advertisement;
+
+  var info = {};
+  info.id = peripheral.id;
+  info.localName = advertisement.localName;
+  info.txPowerLevel = advertisement.txPowerLevel;
+  info.manufacturerData = advertisement.manufacturerData;
+  info.serviceData = advertisement.serviceData;
+  info.serviceUuids = advertisement.serviceUuids;
+  if (advertisement.manufacturerData) {
+    info.manufacturerData = JSON.stringify(advertisement.manufacturerData.toString('hex'));
   }
-});
 
-noble.on('scanStart', function() {
-  console.log('scan start', arguments);
-})
+  explore(peripheral, info, deviceDetectedCallback);
+}
 
-noble.on('scanStop', function(results) {
-  console.log('scan results', arguments);
-});
-
-noble.on('discover', function(peripheral) {
-    console.log('peripheral with ID ' + peripheral.id + ' found');
-    var advertisement = peripheral.advertisement;
-
-    var localName = advertisement.localName;
-    var txPowerLevel = advertisement.txPowerLevel;
-    var manufacturerData = advertisement.manufacturerData;
-    var serviceData = advertisement.serviceData;
-    var serviceUuids = advertisement.serviceUuids;
-
-    if (localName) {
-      console.log('\tLocal Name        = ' + localName);
-    } else if (advertisement.manufacturerData) {
-      console.log('\there is my manufacturer data:');
-      console.log('\t\t' + JSON.stringify(advertisement.manufacturerData.toString('hex')));
-    } else {
-      console.log('peripheral information', peripheral);
-    }
-
-    console.log('peripheral.rssi', peripheral.rssi);
-
-    if (txPowerLevel) {
-      console.log('\tTX Power Level    = ' + txPowerLevel);
-    }
-
-    console.log();
-
-    explore(peripheral);
-});
-
-function explore(peripheral) {
+function explore(peripheral, info, deviceDetectedCallback) {
+  info.services = [];
 
   peripheral.connect(function(error) {
     if (error) {
       console.log('could not connect', error);
-      return;
+      return deviceDetectedCallback(error, info);
     }
     peripheral.discoverServices([], function(error, services) {
+      if (!services.length) return deviceDetectedCallback(null, info);
       var serviceIndex = 0;
-      if (services.length) {
-        console.log('services and characteristics:');
-      }
-      async.whilst(
-        function () {
-          return (serviceIndex < services.length);
-        },
+      async.doWhilst(
+
         function(callback) {
           var service = services[serviceIndex];
 
           if (!service.name) {
-            serviceIndex++;
             return callback();
           }
           // if it is the time service, ignore
           if (service.uuid === '1805') {
-            serviceIndex++;
             return callback();
           }
-          console.log('\tService: %s (%s)', service.name, service.uuid);
-
+          var infoService = {};
+          info.services.push(infoService);
+          infoService.name = service.name;
+          infoService.uuid = service.uuid;
+          infoService.characteristics = [];
           service.discoverCharacteristics([], function(error, characteristics) {
+            if (!characteristics.length) return;
             var characteristicIndex = 0;
+            async.doWhilst(
 
-            async.whilst(
-              function () {
-                return (characteristicIndex < characteristics.length);
-              },
               function(callback) {
+                var infoCharacteristic = {};
                 var characteristic = characteristics[characteristicIndex];
-                if (characteristic.name) {
-                  console.log('\t\tCharacteristic: %s (%s)', characteristic.name, characteristic.uuid);
-                }
+
+                infoCharacteristic.name = characteristic.name;
+                infoCharacteristic.uuid = characteristic.uuid;
 
                 async.series([
                   function(callback) {
@@ -108,6 +77,7 @@ function explore(peripheral) {
                           if (userDescriptionDescriptor) {
                             userDescriptionDescriptor.readValue(function(error, data) {
                               if (data) {
+                                infoCharacteristic.data = data.toString();
                                 console.log('\t\t\t(' + data.toString() + ')');
                               }
                               callback();
@@ -125,12 +95,11 @@ function explore(peripheral) {
                         if (data) {
                           var string = data.toString('ascii');
                           var value = data.toString('hex');
+                          infoCharacteristic.hexValue = value;
+                          infoCharacteristic.asciiValue = string;
                           if (characteristic.uuid === '2a19') {
+                            info.battery = data.readUInt8();
                             console.log('\t\t\t\tBattery level is: %d %', data.readUInt8());
-                          } else if (characteristic.uuid === '2a0f') {
-                            // local time zone and daylight savings time -- ignore this
-                          } else {
-                            console.log('\t\t\t\tvalue: ' + value + ' | (' + string + ')');
                           }
                         }
                         callback();
@@ -140,25 +109,50 @@ function explore(peripheral) {
                     }
                   },
                   function() {
-                    characteristicIndex++;
                     callback();
                   }
                 ]);
               },
+              function () {
+                characteristicIndex++;
+                return (characteristicIndex < characteristics.length);
+              },
               function(error) {
-                serviceIndex++;
                 callback();
               }
             );
           });
         },
+        function () {
+          serviceIndex++;
+          return (serviceIndex < services.length);
+        },
         function (err) {
+          deviceDetectedCallback(err, info);
           peripheral.disconnect();
         }
       );
     });
   });
 }
+
+module.exports.startScan = function(bluetoothDeviceDetectedCallback) {
+  async.whilst(function() {
+    return scan;
+  }, function(callback) {
+    console.log('Scanning...');
+    setTimeout(callback, 30000);
+  });
+
+  noble.on('stateChange', function(state){
+    if (state === 'poweredOn') {
+      noble.startScanning();
+    }
+  });
+
+  noble.on('discover', function(peripheral) {
+    peripheralDetected(peripheral, bluetoothDeviceDetectedCallback);
+  });
 
 // noble.on('discover', function(peripheral) {
 //   console.log('peripheral discovered (' + peripheral.id +
@@ -189,3 +183,8 @@ function explore(peripheral) {
 //   console.log();
 //
 // });
+}
+
+module.exports.startScan(function(err, deviceInfo) {
+  console.log('Device found: ', deviceInfo);
+});
