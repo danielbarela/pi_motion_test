@@ -6,6 +6,7 @@
     "async": "^2.5.0",
     "lodash.throttle": "^4.1.1",
     "noble": "^1.8.1",
+    "node-gpsd": "^0.3.0",
     "public-ip": "^2.3.5",
     "request": "^2.83.0",
     "rpio": "^0.9.17",
