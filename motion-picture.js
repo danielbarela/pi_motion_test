@@ -24,21 +24,30 @@ rpio.open(distance_echo_pin, rpio.INPUT);
 
 var throttledObservation = throttle(takeAPicture, 30000, {leading: true});
 
-getDistance();
+//getDistance();
 
-// loginToMage(function() {
-//   console.log('Logged in to Mage');
-//   initializeMotionSensor();
-// });
+loginToMage(function() {
+  console.log('Logged in to Mage');
+  initializeMotionSensor();
+});
 
+// get location from IP
+//function getLocation(callback) {
+//  publicIp.v4().then(ip => {
+//    request.get({
+//      json: true,
+//      url: 'https://freegeoip.net/json/' + ip
+//    }, function(err, response, body) {
+//      callback(err, body.latitude, body.longitude);
+//    });
+//  });
+//}
+
+// get location from GPS file
 function getLocation(callback) {
-  publicIp.v4().then(ip => {
-    request.get({
-      json: true,
-      url: 'https://freegeoip.net/json/' + ip
-    }, function(err, response, body) {
-      callback(err, body.latitude, body.longitude);
-    });
+  var data = fs.readFile('./db/location.json', function(err, data) {
+    var geojson = JSON.parse(data);
+    callback(err, geojson.geometry.coordinates[1], geojson.geometry.coordinates[0]);
   });
 }
 
@@ -52,7 +61,8 @@ function sendMAGEObservation(attachmentPath) {
   Mage.getId(function(err, id) {
     console.log('Observation has id ' + id);
     getLocation(function(err, lat, lng) {
-      var observation = Mage.newObservation(id, lat, lng, 'Motion');
+      var distance = getDistance();
+      var observation = Mage.newObservation(id, lat, lng, 'Motion', distance);
       Mage.sendObservation(observation, function(err) {
         console.log('Observation sent');
         Mage.sendAttachment(id, attachmentPath, function(err, response, body) {
@@ -95,7 +105,7 @@ function takeAPicture() {
   var camera = new RaspiCam({
     mode: "photo",
     output: filePath,
-    rotation: 0,
+    rotation: 180,
     t: 5,
     width: 1640,
     height: 1232
@@ -113,22 +123,30 @@ function takeAPicture() {
 function getDistance() {
   console.log('Measuring distance');
   rpio.write(distance_trigger_pin, rpio.LOW);
+
   console.log('Waiting for sensor to settle');
   rpio.sleep(2);
   rpio.write(distance_trigger_pin, rpio.HIGH);
-  rpio.sleep(.0001);
+  rpio.sleep(.00001);
   rpio.write(distance_trigger_pin, rpio.LOW);
+
   var pulse_start;
   var pulse_end;
   while(rpio.read(distance_echo_pin) == rpio.LOW) {
-    pulse_start = new Date().getTime();
+    pulse_start = process.hrtime()[1];
   }
+
   while(rpio.read(distance_echo_pin) == rpio.HIGH) {
-    pulse_end = new Date().getTime();
+    pulse_end = process.hrtime()[1];
   }
 
   var pulse_duration = pulse_end - pulse_start;
-  var distance = pulse_duration * 1750;
+  console.log('pulse start: ' + pulse_start);
+  console.log('pulse end: ' + pulse_end);
+  console.log('pulse duration: ' + pulse_duration);
+  var distance = pulse_duration * 17150 * .000000001;
 
   console.log('Distance: ' + distance + ' cm');
+  return distance;
 }
+

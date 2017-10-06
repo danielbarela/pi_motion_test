@@ -63,7 +63,7 @@ module.exports.sendAttachment = function(observationId, filePath, callback) {
   }, callback);
 }
 
-module.exports.newObservation = function(id, lat, lng, sensorType) {
+module.exports.newObservation = function(id, lat, lng, sensorType, distance) {
     return {
       id: id,
       eventId: mageEvent,
@@ -74,7 +74,8 @@ module.exports.newObservation = function(id, lat, lng, sensorType) {
       },
       properties: {
         timestamp: new Date().toISOString(),
-        type: sensorType
+        type: sensorType,
+        field4: distance
       }
     };
 }
