@@ -144,7 +144,7 @@ function getDistance() {
   console.log('pulse start: ' + pulse_start);
   console.log('pulse end: ' + pulse_end);
   console.log('pulse duration: ' + pulse_duration);
-  var distance = pulse_duration * 17150 * .000000001;
+  var distance = pulse_duration * 0.00001715;
 
   console.log('Distance: ' + distance + ' cm');
   return distance;
